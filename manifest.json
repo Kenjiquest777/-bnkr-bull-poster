@@ -1,0 +1,14 @@
+{
+  "slug": "bnkr-bull-poster",
+  "title": "Bankr Bull Poster",
+  "description": "Live-grounded bull posting generator for $BNKR, $LFI, and $DRB with real-time DEX prices, volume, chart trends, dip/breakout angles, and one-click X posting.",
+  "version": 1,
+  "visibility": "private",
+  "permissions": [
+    "fetch:http"
+  ],
+  "scripts": [
+    "getMarketSnapshot"
+  ],
+  "schedule": []
+}
