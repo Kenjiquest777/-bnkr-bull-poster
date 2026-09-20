@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bankr Bull Posting Generator</title>
+<style>
+  :root {
+    --bg: #090b0e;
+    --card-bg: #12151b;
+    --card-border: #1e2430;
+    --accent: #00d26a;
+    --accent-glow: rgba(0, 210, 106, 0.2);
+    --accent-red: #ff4343;
+    --accent-blue: #0088ff;
+    --text-primary: #f0f4f8;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 12px;
+  }
+
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-badge {
+    background: linear-gradient(135deg, #00d26a 0%, #0088ff 100%);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    color: #000;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .refresh-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+  }
+
+  /* Token Selector Cards */
+  .token-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .token-card {
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    user-select: none;
+  }
+
+  .token-card:hover {
+    border-color: #2e384d;
+    transform: translateY(-1px);
+  }
+
+  .token-card.active {
+    border-color: var(--accent);
+    background: #141c18;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+
+  .token-sym {
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .token-price {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .card-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  .change-pill {
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .change-pill.up { color: var(--accent); background: rgba(0, 210, 106, 0.1); }
+  .change-pill.down { color: var(--accent-red); background: rgba(255, 67, 67, 0.1); }
+
+  .stat-label { color: var(--text-muted); }
+
+  /* Generator Controls */
+  .control-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  select, input {
+    width: 100%;
+    background: #0d1015;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: border 0.2s;
+  }
+
+  select:focus, input:focus {
+    border-color: var(--accent);
+  }
+
+  .generate-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .generate-btn:hover {
+    background: #00f07b;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+
+  /* Output Display */
+  .output-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .output-tag {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--accent);
+    background: rgba(0, 210, 106, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .char-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .post-preview {
+    background: #090b0e;
+    border: 1px solid #1a202c;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #e2e8f0;
+    min-height: 120px;
+    line-height: 1.6;
+    font-family: var(--font-sans);
+  }
+
+  .action-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .action-btn {
+    background: #1a202c;
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .action-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+  }
+
+  .action-btn.primary {
+    background: #182820;
+    border-color: #00d26a55;
+    color: var(--accent);
+  }
+
+  .action-btn.primary:hover {
+    background: #1c3528;
+    color: #00ff80;
+  }
+
+  /* Live Pulse Indicator */
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 6px var(--accent);
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Toast notification */
+  #toast {
+    visibility: hidden;
+    min-width: 180px;
+    background-color: #00d26a;
+    color: #000;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 16px;
+    position: fixed;
+    z-index: 99;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+
+  #toast.show {
+    visibility: visible;
+    animation: fadein 0.2s, fadeout 0.2s 2.3s;
+  }
+
+  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 24px; opacity: 1; } }
+  @keyframes fadeout { from { bottom: 24px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+  .market-context {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: #0e131b;
+    border-left: 3px solid var(--accent-blue);
+    padding: 6px 10px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .loading-shimmer {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="title-group">
+      <div class="logo-badge">⚡</div>
+      <div>
+        <h1>Bankr Bull Poster</h1>
+        <div class="subtitle"><span class="pulse-dot"></span> Live DEX Data & Bullish Narrative Engine</div>
+      </div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="fetchLiveMarketData()">
+      <span>🔄 Refresh Market</span>
+    </button>
+  </header>
+
+  <!-- Live Token Cards -->
+  <div class="token-cards" id="tokenCards">
+    <div class="token-card active" data-token="BNKR" onclick="selectToken('BNKR')">
+      <div class="card-top">
+        <span class="token-sym">$BNKR</span>
+        <span class="token-price" id="price-BNKR">Loading...</span>
+      </div>
+      <div class="card-stats">
+        <span class="change-pill" id="change-BNKR">--</span>
+        <span class="stat-label" id="vol-BNKR">Vol: --</span>
+      </div>
+    </div>
+
+    <div class="token-card" data-token="LFI" onclick="selectToken('LFI')">
+      <div class="card-top">
+        <span class="token-sym">$LFI</span>
+        <span class="token-price" id="price-LFI">Loading...</span>
+      </div>
+      <div class="card-stats">
+        <span class="change-pill" id="change-LFI">--</span>
+        <span class="stat-label" id="vol-LFI">Vol: --</span>
+      </div>
+    </div>
+
+    <div class="token-card" data-token="DRB" onclick="selectToken('DRB')">
+      <div class="card-top">
+        <span class="token-sym">$DRB</span>
+        <span class="token-price" id="price-DRB">Loading...</span>
+      </div>
+      <div class="card-stats">
+        <span class="change-pill" id="change-DRB">--</span>
+        <span class="stat-label" id="vol-DRB">Vol: --</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Narrative & Posting Controls -->
+  <div class="control-panel">
+    <div class="row">
+      <div class="control-group">
+        <label>Posting Angle / Narrative</label>
+        <select id="angleSelect">
+          <option value="dip_buy">Chart Trend & Dip Opportunity (Value Play)</option>
+          <option value="breakout">Momentum & Volume Expansion</option>
+          <option value="utility">Ecosystem Moat & Agentic Economy Utility</option>
+          <option value="degen_alpha">CT Degen / FOMO / Ape Appeal</option>
+          <option value="macro_synergy">Bankr Ecosystem Synergy (Base / RH)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Tone & Style</label>
+        <select id="toneSelect">
+          <option value="sharp_analyst">Sharp Onchain Analyst (Data + Levels)</option>
+          <option value="punchy_ct">Crypto Twitter Thread / Viral Hook</option>
+          <option value="confident_whale">Smart Money / Whale Conviction</option>
+          <option value="meme_hype">High Energy Bull Run Poster</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="market-context" id="marketContextText">
+      Analyzing live orderflow and price trend...
+    </div>
+
+    <button class="generate-btn" id="generateBtn" onclick="generateBullPost()">
+      <span>🔥 Generate High-Signal Bull Post</span>
+    </button>
+  </div>
+
+  <!-- Output Box -->
+  <div class="output-card">
+    <div class="output-header">
+      <span class="output-tag" id="postTag">PREVIEW • READY TO POST</span>
+      <span class="char-count" id="charCount">0 chars</span>
+    </div>
+
+    <div class="post-preview" id="postOutput">Click "Generate High-Signal Bull Post" to create live-grounded bull content using current DEX metrics.</div>
+
+    <div class="action-bar">
+      <button class="action-btn" onclick="shareToX()">
+        <span>🐦 Post to X</span>
+      </button>
+      <button class="action-btn" onclick="askBankrToRefine() neoc">
+        <span>💬 Ask Bankr Chat</span>
+      </button>
+      <button class="action-btn primary" onclick="copyPost()">
+        <span>📋 Copy Text</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Copied to clipboard!</div>
+
+<script>
+  let currentToken = 'BNKR';
+  let marketData = null;
+
+  const TOKEN_META = {
+    BNKR: {
+      name: 'BankrCoin',
+      ca: '0x22af33fe49fd1fa80c7149773dde5890d3c76f3b',
+      chain: 'Base',
+      role: 'Core native token of the agentic economy on Base and Robinhood Chain',
+      features: [
+        'powers autonomous agent trading and execution across EVM & Solana',
+        'exclusive access to Bankr Club, top tier airdrops, and revenue distribution',
+        'multi-chain DeFi orchestration with instant cross-chain liquidity'
+      ]
+    },
+    LFI: {
+      name: 'LienFi',
+      ca: '0x3722264ab15a1dfce5a5af89e6547f7949a8aba3',
+      chain: 'Base',
+      role: 'Top-tier Bankr Club partner & decentralized liquidity lien protocol',
+      features: [
+        'on-chain liquidity provisioning and asset efficiency engine',
+        'deep strategic integration with Bankr Club ecosystem holders',
+        'low cap high upside multiplier play in current Base DeFi cycle'
+      ]
+    },
+    DRB: {
+      name: 'DebtReliefBot',
+      ca: '0x3ec2156d4c0a9cbdab4a016633b7bcf6a8d68ea2',
+      chain: 'Base',
+      role: 'Viral AI agent wiping onchain debt and driving automated buybacks',
+      features: [
+        'autonomous autonomous fee recycling and debt-relief liquidation mechanism',
+        'proven high-volume battle-tested AI agent token with over 140k holders',
+        'heavy whale accumulation zone after recent retracement'
+      ]
+    }
+  };
+
+  function selectToken(sym) {
+    currentToken = sym;
+    document.querySelectorAll('.token-card').forEach(c => {
+      c.classList.toggle('active', c.getAttribute('data-token') === sym);
+    });
+    updateContextDisplay();
+    generateBullPost();
+  }
+
+  function formatUsd(val) {
+    if (val === undefined || val === null || isNaN(val)) return '$0.00';
+    if (val < 0.0001) return '$' + Number(val).toFixed(7);
+    if (val < 0.01) return '$' + Number(val).toFixed(5);
+    if (val < 1) return '$' + Number(val).toFixed(4);
+    return '$' + Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatMcap(val) {
+    if (!val) return '$0';
+    if (val >= 1e6) return '$' + (val / 1e6).toFixed(1) + 'M';
+    if (val >= 1e3) return '$' + (val / 1e3).toFixed(1) + 'K';
+    return '$' + Math.round(val);
+  }
+
+  async function fetchLiveMarketData() {
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) refreshBtn.classList.add('loading-shimmer');
+
+    try {
+      let data = null;
+      if (window.bankr && typeof bankr.invokeScript === 'function') {
+        data = await bankr.invokeScript('getMarketSnapshot');
+      } else {
+        // Fallback or dry-run direct mock
+        data = {
+          timestamp: Date.now(),
+          tokens: {
+            BNKR: { symbol: 'BNKR', priceUsd: 0.0002429, change24h: 3.1, change1h: 0.6, volume24h: 215000, fdv: 24200000, buys24h: 430, sells24h: 400 },
+            LFI: { symbol: 'LFI', priceUsd: 0.0000624, change24h: -8.1, change1h: 0.8, volume24h: 36000, fdv: 3950000, buys24h: 240, sells24h: 310 },
+            DRB: { symbol: 'DRB', priceUsd: 0.0001845, change24h: -13.2, change1h: 0.4, volume24h: 210000, fdv: 18300000, buys24h: 790, sells24h: 770 }
+          }
+        };
+      }
+
+      if (data && data.tokens) {
+        marketData = data.tokens;
+        renderMarketStats();
+        updateContextDisplay();
+      }
+    } catch (err) {
+      console.error('Error fetching market:', err);
+    } finally {
+      if (refreshBtn) refreshBtn.classList.remove('loading-shimmer');
+    }
+  }
+
+  function renderMarketStats() {
+    if (!marketData) return;
+
+    ['BNKR', 'LFI', 'DRB'].forEach(sym => {
+      const t = marketData[sym];
+      if (!t) return;
+
+      const priceEl = document.getElementById(`price-${sym}`);
+      const changeEl = document.getElementById(`change-${sym}`);
+      const volEl = document.getElementById(`vol-${sym}`);
+
+      if (priceEl) priceEl.innerText = formatUsd(t.priceUsd);
+      if (changeEl) {
+        const isUp = t.change24h >= 0;
+        changeEl.className = 'change-pill ' + (isUp ? 'up' : 'down');
+        changeEl.innerText = (isUp ? '+' : '') + t.change24h.toFixed(1) + '%';
+      }
+      if (volEl) {
+        volEl.innerText = 'Vol: ' + formatMcap(t.volume24h);
+      }
+    });
+  }
+
+  function updateContextDisplay() {
+    if (!marketData || !marketData[currentToken]) return;
+    const t = marketData[currentToken];
+    const isDip = t.change24h < 0;
+    const isPumping = t.change24h > 2.0;
+
+    const ctxEl = document.getElementById('marketContextText');
+    if (!ctxEl) return;
+
+    if (isDip) {
+      ctxEl.innerHTML = `<strong>Live Trend:</strong> $${currentToken} retracing (${t.change24h.toFixed(1)}% 24h) | 1h recovery momentum (+${Math.max(0, t.change1h || 0.2).toFixed(1)}%) | <strong>High value dip-buy setup</strong> at ${formatMcap(t.fdv)} MC.`;
+    } else if (isPumping) {
+      ctxEl.innerHTML = `<strong>Live Trend:</strong> $${currentToken} showing strength (+${t.change24h.toFixed(1)}% 24h) | Volume surging to ${formatMcap(t.volume24h)} | <strong>Breakout continuation active</strong>.`;
+    } else {
+      ctxEl.innerHTML = `<strong>Live Trend:</strong> $${currentToken} consolidating firmly around ${formatUsd(t.priceUsd)} | Base accumulation zone established.`;
+    }
+  }
+
+  function generateBullPost() {
+    const angle = document.getElementById('angleSelect').value;
+    const tone = document.getElementById('toneSelect').value;
+    const t = (marketData && marketData[currentToken]) || {
+      symbol: currentToken,
+      priceUsd: currentToken === 'BNKR' ? 0.000242 : (currentToken === 'LFI' ? 0.000062 : 0.000185),
+      change24h: currentToken === 'BNKR' ? 2.8 : (currentToken === 'LFI' ? -8.0 : -14.6),
+      change1h: 0.6,
+      volume24h: 180000,
+      fdv: currentToken === 'BNKR' ? 24100000 : (currentToken === 'LFI' ? 3950000 : 18300000),
+      buys24h: 420
+    };
+
+    const meta = TOKEN_META[currentToken];
+    const priceFormatted = formatUsd(t.priceUsd);
+    const mcapFormatted = formatMcap(t.fdv);
+    const volFormatted = formatMcap(t.volume24h);
+    const isDip = t.change24h < -2;
+    const dipDiscount = Math.abs(t.change24h).toFixed(1);
+
+    let post = '';
+
+    if (angle === 'dip_buy') {
+      if (tone === 'sharp_analyst') {
+        post = `smart money loves a clean reset. $${currentToken} is offering an undeniable entry window.\n\ncurrent levels:\n• price: ${priceFormatted} (${isDip ? `-${dipDiscount}% pullback` : 'testing support'})\n• market cap: ${mcapFormatted} | 24h vol: ${volFormatted}\n• chain: ${meta.chain}\n\nthe thesis hasn't budged: ${meta.features[0]}. \npanic sellers provide liquidity to long-term builders. charts retest key liquidity before expansion legs. \n\nbidding this dip with high conviction.`;
+      } else if (tone === 'punchy_ct') {
+        post = `if you wanted a cheaper entry on $${currentToken}, this is your gift.\n\nretracing right into the golden pocket at ${priceFormatted}.\n${isDip ? `you get a ${dipDiscount}% discount while fundamentals are accelerating.` : 'consolidation right before the next leg up.'}\n\n• market cap: ${mcapFormatted}\n• ecosystem: Bankr / Base\n• catalyst: ${meta.features[1]}\n\nfading high-utility agent infrastructure on dips is how people get left behind. loading bags.`;
+      } else if (tone === 'confident_whale') {
+        post = `accumulating more $${currentToken} here.\n\nwhen quality assets pull back to ${priceFormatted} (${mcapFormatted} MC), you don't overthink. \nover ${volFormatted} in 24h turnover confirms continuous absorption by patient capital.\n\n$${currentToken} powers ${meta.role.toLowerCase()}. \nretail sells the red candles; institutions and whales build positions. see you at new highs.`;
+      } else {
+        post = `🚨 DIP ALERT ON $${currentToken} 🚨\n\ndown ${dipDiscount}% on paper, but the orderbook is getting eaten up! \ncurrent price: ${priceFormatted} | MC: ${mcapFormatted}\n\nwhy $${currentToken} rebounds violently:\n🔥 ${meta.features[0]}\n🔥 ${meta.features[2]}\n🔥 Base agent season is just getting started\n\nstop waiting for green candles to chase. the play is right in front of you. 📈`;
+      }
+    } else if (angle === 'breakout') {
+      if (tone === 'sharp_analyst') {
+        post = `$${currentToken} momentum metrics turning distinctly bullish.\n\n• price: ${priceFormatted}\n• 24h volume: ${volFormatted}\n• structure: aggressive absorption across onchain DEX pools\n• network: ${meta.chain}\n\nvolume expansion paired with tightening supply indicates supply shock dynamics. target remains multiples higher as agent liquidity flows deepen.`;
+      } else if (tone === 'punchy_ct') {
+        post = `the orderflow on $${currentToken} is looking fierce.\n\nbids are stepping up aggressively. sitting at ${priceFormatted} with ${mcapFormatted} market cap, this is still vastly mispriced compared to the scope of what Bankr is building.\n\n${meta.role}.\n\ndon't sleep on this momentum. next leg up is loading. ⚡`;
+      } else {
+        post = `breakout incoming for $${currentToken}.\n\nvolume is surging (${volFormatted} in 24h) and selling pressure has completely evaporated. \ntrading at ${priceFormatted} — once this clears local resistance, price discovery follows.\n\nfundamental driver: ${meta.features[0]}.\nload your bags before the herd arrives.`;
+      }
+    } else if (angle === 'utility') {
+      if (tone === 'sharp_analyst') {
+        post = `in a market full of vaporware, $${currentToken} represents real, verifiable onchain utility.\n\nkey highlights:\n• ${meta.features[0]}\n• ${meta.features[1]}\n• ${meta.features[2]}\n\nfundamentals breakdown:\n- current price: ${priceFormatted}\n- mcap: ${mcapFormatted}\n- chain: ${meta.chain}\n\nthe agentic economy isn't an experiment; it's the fastest-growing sector on Base. $${currentToken} sits directly at the center of execution.`;
+      } else {
+        post = `crypto investors always ask: "what is the real utility?"\n\nlook at $${currentToken}.\nit doesn't rely on hype or hollow promises:\n→ ${meta.role}\n→ ${meta.features[0]}\n→ deeply integrated into the Bankr terminal ecosystem\n\nvalued at only ${mcapFormatted} today at ${priceFormatted}.\nutility always wins the marathon. 🫡`;
+      }
+    } else if (angle === 'degen_alpha') {
+      post = `anon, are you really going to fade $${currentToken} at a ${mcapFormatted} market cap?\n\nit's literally:\n1. backed by the most active AI agent infra in Web3\n2. sitting at ${priceFormatted} with easy 10x-50x liquidity headroom\n3. ${meta.features[0]}\n\nevery cycle you look back and wish you bought the utility coins when nobody was paying attention. this is that coin. \n\ncontract: ${meta.ca}\nbuy on Base via Bankr.`;
+    } else { // macro_synergy
+      post = `the synergy between Base, Robinhood Chain, and Bankr's agentic ecosystem is creating the ultimate flywheel.\n\nand $${currentToken} is the asset to watch:\n• price: ${priceFormatted}\n• market cap: ${mcapFormatted}\n• 24h volume: ${volFormatted}\n\nas AI agents transition from novelty bots to full autonomous portfolio managers, tokens with actual execution rails like $${currentToken} capture the terminal value.\n\naccumulate and hold for the agentic supercycle.`;
+    }
+
+    const outputEl = document.getElementById('postOutput');
+    const charCountEl = document.getElementById('charCount');
+    const postTagEl = document.getElementById('postTag');
+
+    if (outputEl) outputEl.innerText = post;
+    if (charCountEl) charCountEl.innerText = `${post.length} chars`;
+    if (postTagEl) postTagEl.innerText = `$${currentToken} • ${angle.toUpperCase()}`;
+  }
+
+  function copyPost() {
+    const text = document.getElementById('postOutput').innerText;
+    if (!text) return;
+
+    if (window.bankr && typeof bankr.copy === 'function') {
+      bankr.copy(text);
+    } else {
+      navigator.clipboard.writeText(text);
+    }
+
+    const toast = document.getElementById('toast');
+    toast.className = 'show';
+    setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 2500);
+  }
+
+  function shareToX() {
+    const text = document.getElementById('postOutput').innerText;
+    const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+    if (window.bankr && typeof bankr.openExternal === 'function') {
+      bankr.openExternal(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
+  function askBankrToRefine() {
+    const text = document.getElementById('postOutput').innerText;
+    const prompt = `Can you take this bull post for $${currentToken} and customize it or analyze the trade setup further?\n\n"${text}"`;
+    if (window.bankr && typeof bankr.prefillChat === 'function') {
+      bankr.prefillChat(prompt);
+    }
+  }
+
+  // Init
+  window.addEventListener('DOMContentLoaded', async () => {
+    if (window.bankr && typeof bankr.on === 'function') {
+      bankr.on('ready', () => {
+        fetchLiveMarketData();
+      });
+    } else {
+      fetchLiveMarketData();
+    }
+  });
+
+  document.getElementById('angleSelect').addEventListener('change', generateBullPost);
+  document.getElementById('toneSelect').addEventListener('change', generateBullPost);
+</script>
+
+</body>
+</html>
